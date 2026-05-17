@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>DRVN Gym</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{--accent:#CC0000;--dark:#111;--light:#f9f9f9;--gray:#888;--border:#e5e5e5}
+  html{scroll-behavior:smooth}
+  body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--dark);background:#fff}
+
+  /* NAV */
+  nav{position:fixed;top:0;width:100%;background:rgba(255,255,255,0.96);backdrop-filter:blur(8px);z-index:999;border-bottom:1px solid var(--border)}
+  .nav-inner{max-width:1100px;margin:0 auto;padding:0 24px;height:64px;display:flex;align-items:center;justify-content:space-between}
+  .nav-links{display:flex;gap:32px;list-style:none}
+  .nav-links a{text-decoration:none;color:var(--dark);font-size:.9rem;font-weight:600;letter-spacing:.5px;text-transform:uppercase;transition:color .2s}
+  .nav-links a:hover{color:var(--accent)}
+  .nav-cta{background:var(--accent);color:#fff;padding:10px 22px;border-radius:6px;font-weight:700;font-size:.85rem;letter-spacing:1px;text-transform:uppercase;text-decoration:none;transition:opacity .2s}
+  .nav-cta:hover{opacity:.85}
+  .hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;background:none;border:none;padding:6px;z-index:1001}
+  .hamburger span{display:block;width:24px;height:2.5px;background:var(--dark);border-radius:2px;transition:all .3s}
+  .hamburger.open span:nth-child(1){transform:rotate(45deg) translate(5px,5px)}
+  .hamburger.open span:nth-child(2){opacity:0;transform:translateX(-8px)}
+  .hamburger.open span:nth-child(3){transform:rotate(-45deg) translate(5px,-5px)}
+  .mob-nav{display:none;position:fixed;top:64px;left:0;right:0;background:#fff;border-top:2px solid var(--accent);flex-direction:column;z-index:998;box-shadow:0 8px 24px rgba(0,0,0,.1)}
+  .mob-nav.open{display:flex}
+  .mob-nav a{padding:16px 28px;font-size:.9rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;text-decoration:none;color:var(--dark);border-bottom:1px solid var(--border);transition:color .2s}
+  .mob-nav a:hover{color:var(--accent)}
+  .mob-nav .mob-cta{margin:16px 24px 20px;background:var(--accent);color:#fff !important;text-align:center;border-radius:6px;padding:14px 0;border:none}
+
+  /* HERO */
+  #hero{height:100vh;background:var(--dark);display:flex;align-items:center;justify-content:center;text-align:center;position:relative;overflow:hidden}
+  .hero-bg{position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1600&auto=format&fit=crop') center/cover no-repeat;opacity:.3}
+  .hero-content{position:relative;z-index:1;max-width:700px;padding:0 24px}
+  .hero-tag{display:inline-block;background:var(--accent);color:#fff;font-size:.75rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;padding:6px 16px;border-radius:4px;margin-bottom:24px}
+  .hero-title{font-size:clamp(3.5rem,10vw,7rem);font-weight:900;color:#fff;letter-spacing:8px;line-height:1;margin-bottom:20px}
+  .hero-sub{color:#ccc;font-size:1.1rem;line-height:1.7;margin-bottom:40px}
+  .btn{display:inline-block;background:var(--accent);color:#fff;padding:15px 36px;border-radius:6px;font-weight:700;font-size:.95rem;letter-spacing:1.5px;text-transform:uppercase;text-decoration:none;transition:opacity .2s}
+  .btn:hover{opacity:.85}
+  .btn-outline{background:transparent;border:2px solid #fff;margin-left:12px;color:#fff}
+  .btn-outline:hover{background:#fff;color:var(--dark);opacity:1}
+  .hero-bottom{position:absolute;bottom:36px;left:0;right:0;z-index:2;display:flex;justify-content:center;flex-wrap:wrap;gap:12px;padding:0 24px}
+  .hero-badge{background:rgba(255,255,255,.08);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.18);color:#fff;padding:8px 20px;border-radius:30px;font-size:.75rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;display:flex;align-items:center;gap:8px}
+  .hero-badge .badge-val{color:var(--accent)}
+
+  /* SECTION BASE */
+  section{padding:96px 24px}
+  .container{max-width:1100px;margin:0 auto}
+  .section-label{font-size:.75rem;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:var(--accent);margin-bottom:12px}
+  .section-title{font-size:clamp(1.8rem,4vw,2.8rem);font-weight:900;letter-spacing:-1px;line-height:1.1;margin-bottom:16px}
+  .section-sub{color:var(--gray);font-size:1rem;line-height:1.7;max-width:520px}
+
+  /* ABOUT */
+  #about{background:var(--light)}
+  .about-grid{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;margin-top:48px}
+  .about-img{border-radius:12px;overflow:hidden;aspect-ratio:4/3}
+  .about-img img{width:100%;height:100%;object-fit:cover}
+  .about-text p{color:#444;line-height:1.8;font-size:.97rem;margin-bottom:14px}
+  .about-text .signature{font-weight:700;color:var(--dark);font-size:.95rem;margin-top:4px}
+  .about-features{margin-top:28px;display:flex;flex-direction:column;gap:12px}
+  .feature{display:flex;align-items:center;gap:12px;font-weight:600;font-size:.95rem}
+  .feature-dot{width:10px;height:10px;background:var(--accent);border-radius:50%;flex-shrink:0}
+
+  /* GALLERY SLIDESHOW */
+  #gallery{background:#fff}
+  .gallery-header{margin-bottom:40px}
+  .slideshow{position:relative;border-radius:14px;overflow:hidden;aspect-ratio:16/7;background:#111;user-select:none}
+  .slide{position:absolute;inset:0;opacity:0;transition:opacity .6s ease}
+  .slide.active{opacity:1}
+  .slide img{width:100%;height:100%;object-fit:cover;display:block}
+  .slide-btn{position:absolute;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.5);color:#fff;border:none;width:48px;height:48px;border-radius:50%;cursor:pointer;font-size:1.2rem;display:flex;align-items:center;justify-content:center;transition:background .2s;z-index:2}
+  .slide-btn:hover{background:var(--accent)}
+  .slide-btn.prev{left:16px}
+  .slide-btn.next{right:16px}
+  .slide-dots{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:2}
+  .dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.45);cursor:pointer;transition:background .2s,transform .2s}
+  .dot.active{background:#fff;transform:scale(1.3)}
+  .map-wrap{margin-top:24px;border-radius:14px;overflow:hidden;height:300px;border:1px solid var(--border)}
+  .map-wrap iframe{width:100%;height:100%;border:none}
+
+  /* CLASSES */
+  #classes{background:#111}
+  #classes .section-label{color:var(--accent)}
+  #classes .section-title{color:#fff}
+  #classes .section-sub{color:#888}
+  .classes-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:48px}
+  .class-card{background:#fff;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;transition:transform .25s,box-shadow .25s}
+  .class-card:hover{transform:translateY(-5px);box-shadow:0 20px 48px rgba(0,0,0,.35)}
+  .class-img{position:relative;height:220px;overflow:hidden}
+  .class-img img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .4s}
+  .class-card:hover .class-img img{transform:scale(1.05)}
+  .new-badge{position:absolute;top:0;left:0;background:var(--accent);color:#fff;font-size:.7rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;padding:6px 28px;clip-path:polygon(0 0,100% 0,80% 100%,0 100%)}
+  .class-body{padding:20px 22px 24px;flex:1;display:flex;flex-direction:column}
+  .class-name{font-size:1.05rem;font-weight:900;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;color:var(--dark)}
+  .class-tags{font-size:.78rem;font-style:italic;color:var(--gray);margin-bottom:10px}
+  .class-tags::before{content:'• ';color:var(--accent);font-style:normal;font-weight:700}
+  .class-desc{font-size:.88rem;color:#555;line-height:1.65;flex:1}
+
+  /* OFFERS */
+  #offers{background:var(--light)}
+  .offers-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-top:20px}
+  .offer-card{background:#fff;border-radius:12px;padding:32px 24px;border:1px solid var(--border);transition:transform .2s,box-shadow .2s;position:relative;overflow:hidden;display:flex;flex-direction:column}
+  .offer-card:hover{transform:translateY(-4px);box-shadow:0 16px 40px rgba(0,0,0,.08)}
+  .offer-card.popular{border:2px solid var(--accent)}
+  .popular-badge{position:absolute;top:0;right:0;background:var(--accent);color:#fff;font-size:.7rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:6px 14px;border-bottom-left-radius:10px}
+  .offer-name{font-size:.75rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--gray);margin-bottom:12px}
+  .offer-price{font-size:2.4rem;font-weight:900;color:var(--dark);letter-spacing:-1px;line-height:1}
+  .offer-price span{font-size:.9rem;font-weight:600;color:var(--gray);letter-spacing:0}
+  .offer-price-note{font-size:.78rem;color:var(--gray);margin-top:4px}
+  .offer-desc{color:var(--gray);font-size:.88rem;margin:10px 0 20px;line-height:1.6}
+  .offer-features{list-style:none;display:flex;flex-direction:column;gap:9px;margin-bottom:28px;flex:1}
+  .offer-features li{font-size:.88rem;color:#444;display:flex;align-items:flex-start;gap:10px;line-height:1.4}
+  .offer-features li::before{content:'✓';color:var(--accent);font-weight:700;font-size:.85rem;flex-shrink:0;margin-top:1px}
+  .offer-features li.cross::before{content:'✗';color:#bbb}
+  .offer-btn{display:block;text-align:center;padding:12px;border-radius:6px;font-weight:700;font-size:.82rem;letter-spacing:1px;text-transform:uppercase;text-decoration:none;border:2px solid var(--dark);color:var(--dark);transition:all .2s;margin-top:auto}
+  .offer-btn:hover,.offer-card.popular .offer-btn{background:var(--accent);border-color:var(--accent);color:#fff}
+
+  /* REVIEWS */
+  #reviews{background:var(--light)}
+  .reviews-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:48px}
+  .review-card{background:#fff;border-radius:12px;padding:28px;border:1px solid var(--border);display:flex;flex-direction:column;gap:14px;transition:transform .2s,box-shadow .2s}
+  .review-card:hover{transform:translateY(-4px);box-shadow:0 12px 32px rgba(0,0,0,.07)}
+  .review-stars{color:var(--accent);font-size:1rem;letter-spacing:2px}
+  .review-text{color:#444;font-size:.93rem;line-height:1.7;flex:1;font-style:italic}
+  .review-author{display:flex;align-items:center;gap:12px;margin-top:4px}
+  .review-avatar{width:40px;height:40px;border-radius:50%;background:var(--accent);color:#fff;font-weight:800;font-size:.95rem;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .review-name{font-weight:700;font-size:.9rem;color:var(--dark)}
+  .review-meta{font-size:.78rem;color:var(--gray)}
+
+  /* VIDEO */
+  #video{background:#000;padding:80px 24px;text-align:center}
+  #video .section-label{color:var(--accent)}
+  #video .section-title{color:#fff;margin-bottom:8px}
+  #video .section-sub{color:#888;margin:0 auto 40px}
+  .video-wrap{position:relative;max-width:860px;margin:0 auto;border-radius:14px;overflow:hidden;aspect-ratio:16/9;background:#111;cursor:pointer}
+  .video-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border:none}
+  .video-placeholder{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg,#1a1a1a,#0a0a0a);gap:16px}
+  .play-btn{width:80px;height:80px;background:var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center;transition:transform .2s;box-shadow:0 0 0 12px rgba(204,0,0,.15)}
+  .play-btn svg{width:28px;height:28px;fill:#fff;margin-left:5px}
+  .video-wrap:hover .play-btn{transform:scale(1.1)}
+  .video-label{color:#aaa;font-size:.85rem;letter-spacing:2px;text-transform:uppercase}
+  .video-cta{display:inline-block;margin-top:32px;background:transparent;border:2px solid #fff;color:#fff;padding:13px 36px;border-radius:8px;font-weight:700;font-size:.9rem;letter-spacing:1.5px;text-transform:uppercase;text-decoration:none;transition:all .2s}
+  .video-cta:hover{background:#fff;color:#000}
+
+  /* CTA */
+  #cta{background:#111;text-align:center}
+  #cta .section-title{color:#fff}
+  #cta .section-sub{color:#aaa;margin:0 auto 40px}
+  .cta-info{display:flex;justify-content:center;gap:40px;margin-top:56px;flex-wrap:wrap}
+  .cta-item{color:#aaa;font-size:.9rem;text-align:center}
+  .cta-item strong{display:block;color:#fff;font-size:1rem;margin-bottom:6px}
+
+  /* MODAL */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:2000;display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity .25s}
+  .modal-overlay.open{opacity:1;pointer-events:all}
+  .modal{background:#fff;border-radius:14px;width:100%;max-width:480px;overflow:hidden;transform:translateY(24px);transition:transform .25s}
+  .modal-overlay.open .modal{transform:translateY(0)}
+  .modal-header{background:#111;padding:28px 32px 24px;position:relative}
+  .modal-header h3{color:#fff;font-size:1.4rem;font-weight:900;letter-spacing:1px}
+  .modal-header p{color:#888;font-size:.88rem;margin-top:4px}
+  .modal-close{position:absolute;top:16px;right:20px;background:none;border:none;color:#666;font-size:1.4rem;cursor:pointer;transition:color .2s}
+  .modal-close:hover{color:#fff}
+  .modal-body{padding:28px 32px 32px}
+  .form-group{margin-bottom:18px}
+  .form-group label{display:block;font-size:.8rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#555;margin-bottom:6px}
+  .form-group input,.form-group select{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:.95rem;font-family:inherit;color:var(--dark);outline:none;transition:border-color .2s}
+  .form-group input:focus,.form-group select:focus{border-color:var(--accent)}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .modal-submit{width:100%;background:var(--accent);color:#fff;border:none;padding:14px;border-radius:8px;font-weight:700;font-size:.95rem;letter-spacing:1px;text-transform:uppercase;cursor:pointer;margin-top:8px;transition:opacity .2s}
+  .modal-submit:hover{opacity:.85}
+  .modal-success{text-align:center;padding:48px 32px}
+  .modal-success .check{font-size:3rem;margin-bottom:16px}
+  .modal-success h3{font-size:1.3rem;font-weight:900;margin-bottom:8px}
+  .modal-success p{color:var(--gray);font-size:.95rem;line-height:1.6}
+
+  /* FOOTER */
+  footer{background:#000;padding:32px 24px}
+  .footer-inner{max-width:1100px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
+  footer p{color:#555;font-size:.8rem}
+
+  @media(max-width:900px){.offers-grid{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:768px){
+    .nav-links{display:none}
+    .about-grid{grid-template-columns:1fr}
+    .classes-grid{grid-template-columns:1fr}
+    .offers-grid{grid-template-columns:1fr}
+    .reviews-grid{grid-template-columns:1fr}
+    .footer-inner{flex-direction:column;text-align:center}
+    .slideshow{aspect-ratio:4/3}
+    .hero-bottom{gap:8px}
+    .hero-badge{font-size:.68rem;padding:6px 14px}
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <svg height="48" width="auto" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+      <rect width="200" height="200" fill="#000"/>
+      <path d="M48,44 L152,44 L177,103 Q156,172 100,190 Q44,172 23,103 Z" fill="none" stroke="#9B1111" stroke-width="7" stroke-linejoin="round"/>
+      <rect x="25" y="93" width="150" height="6" rx="3" fill="#9B1111"/>
+      <rect x="25" y="79" width="8" height="34" rx="2" fill="#9B1111"/>
+      <rect x="35" y="84" width="11" height="24" rx="2" fill="#9B1111"/>
+      <rect x="154" y="84" width="11" height="24" rx="2" fill="#9B1111"/>
+      <rect x="167" y="79" width="8" height="34" rx="2" fill="#9B1111"/>
+      <path d="M76,97 Q76,69 100,69 Q124,69 124,97" fill="none" stroke="#9B1111" stroke-width="12" stroke-linecap="round"/>
+      <circle cx="100" cy="117" r="27" fill="#9B1111"/>
+      <text x="100" y="164" text-anchor="middle" fill="white" font-weight="900" font-size="46" font-family="Arial Black,Impact,sans-serif" letter-spacing="1">DRVN</text>
+    </svg>
+    <ul class="nav-links">
+      <li><a href="#about">About</a></li>
+      <li><a href="#gallery">Gallery</a></li>
+      <li><a href="#classes">Lessen</a></li>
+      <li><a href="#offers">Memberships</a></li>
+      <li><a href="#cta">Contact</a></li>
+    </ul>
+    <a href="#offers" class="nav-cta" style="display:none" id="navDesktopCta">Join Now</a>
+    <button class="hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+<div class="mob-nav" id="mobNav">
+  <a href="#about" onclick="closeMenu()">About</a>
+  <a href="#gallery" onclick="closeMenu()">Gallery</a>
+  <a href="#classes" onclick="closeMenu()">Lessen</a>
+  <a href="#offers" onclick="closeMenu()">Memberships</a>
+  <a href="#cta" onclick="closeMenu()">Contact</a>
+  <a href="#offers" class="mob-cta" onclick="closeMenu()">Join Now</a>
+</div>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <div class="hero-tag">Est. 2025 · Lanaken</div>
+    <h1 class="hero-title">DRVN</h1>
+    <p class="hero-sub">Functional fitness, strength &amp; conditioning.</p>
+    <a href="#offers" class="btn">Join Now</a>
+    <a href="#about" class="btn btn-outline">Learn More</a>
+  </div>
+  <div class="hero-bottom">
+    <div class="hero-badge"><span class="badge-val">15+</span> Lessen / Week</div>
+    <div class="hero-badge"><span class="badge-val">4.5★</span> Beoordeling</div>
+    <div class="hero-badge">Official HYROX Training Club</div>
+    <div class="hero-badge">ZEUZ Partner</div>
+  </div>
+</section>
+
+<!-- VIDEO -->
+<section id="video">
+  <div class="container">
+    <div class="section-label">Bekijk de gym</div>
+    <h2 class="section-title">Ervaar DRVN van binnenuit</h2>
+    <p class="section-sub">Ontdek onze gym, onze aanpak en zie hoe een gratis proefles eruitziet. Kom binnen, kijk rond en voel de sfeer — voor elk niveau, zonder drempel.</p>
+    <div class="video-wrap">
+      <iframe src="https://www.youtube.com/embed/vc1E5CfRfos?rel=0&modestbranding=1" title="DRVN Gym" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position:absolute;inset:0;width:100%;height:100%;border:none"></iframe>
+    </div>
+    <a href="#offers" class="video-cta" onclick="openModal('Gratis Proefles');return false;">Gratis proefles</a>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="container">
+    <div class="about-grid">
+      <div class="about-img">
+        <img src="https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=800&auto=format&fit=crop" alt="Inside DRVN Gym"/>
+      </div>
+      <div class="about-text">
+        <div class="section-label">About Us</div>
+        <h2 class="section-title">Everything is earned,<br>nothing is given.<br><em style="color:var(--accent);font-style:normal">Be DRVN.</em></h2>
+        <p>Bij DRVN geloven we dat consistente training niet ontstaat uit motivatie alleen, maar uit de omgeving waarin je traint. Daarom bouwen we bewust aan een sterke community. Wanneer je samen traint, vaste momenten deelt en elkaar blijft zien, wordt volhouden vanzelf makkelijker.</p>
+        <p>We brengen mensen samen die dezelfde doelen nastreven. Dat zorgt voor herkenning, onderlinge motivatie en een sfeer waarin iedereen elkaar vooruit helpt. Je staat er niet alleen voor — je traint in een omgeving waar groei normaal is en waar iedereen elkaar sterker maakt.</p>
+        <p>Voor ons gaat community verder dan samen trainen. Het maakt het proces leuker, menselijker en duurzamer. Bij DRVN train je niet alleen voor resultaat op korte termijn, maar bouw je aan gewoontes die je volhoudt op lange termijn.</p>
+        <p class="signature">Team DRVN</p>
+        <div class="about-features">
+          <div class="feature"><div class="feature-dot"></div>Professional training equipment</div>
+          <div class="feature"><div class="feature-dot"></div>Groepslessen voor elk doel</div>
+          <div class="feature"><div class="feature-dot"></div>Open 7 dagen per week</div>
+          <div class="feature"><div class="feature-dot"></div>Toegankelijk voor elk niveau</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- GALLERY SLIDESHOW -->
+<section id="gallery">
+  <div class="container">
+    <div class="gallery-header">
+      <div class="section-label">Our Facility</div>
+      <h2 class="section-title">See the space</h2>
+    </div>
+    <div class="slideshow" id="slideshow">
+      <div class="slide active"><img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1400&auto=format&fit=crop" alt="Gym floor"/></div>
+      <div class="slide"><img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=1400&auto=format&fit=crop" alt="Equipment"/></div>
+      <div class="slide"><img src="https://images.unsplash.com/photo-1540497077202-7c8a3999166f?w=1400&auto=format&fit=crop" alt="Training area"/></div>
+      <div class="slide"><img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=1400&auto=format&fit=crop" alt="Weight area"/></div>
+      <div class="slide"><img src="https://images.unsplash.com/photo-1574680096145-d05b474e2155?w=1400&auto=format&fit=crop" alt="Cardio zone"/></div>
+      <div class="slide"><img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1400&auto=format&fit=crop" alt="Free weights"/></div>
+      <button class="slide-btn prev" onclick="moveSlide(-1)">&#8592;</button>
+      <button class="slide-btn next" onclick="moveSlide(1)">&#8594;</button>
+      <div class="slide-dots" id="dots"></div>
+    </div>
+    <!-- GOOGLE MAP -->
+    <div class="map-wrap">
+      <iframe src="https://maps.google.com/maps?q=Europark+25,+3620+Lanaken,+Belgium&output=embed&z=16" allowfullscreen loading="lazy"></iframe>
+    </div>
+  </div>
+</section>
+
+<!-- CLASSES -->
+<section id="classes">
+  <div class="container">
+    <div class="section-label">Groepslessen</div>
+    <h2 class="section-title">Ons lessenaanbod</h2>
+    <p class="section-sub">Zes unieke lessen, één doel: jou sterker, sneller en fitter maken. Voor elk niveau, elke doelstelling.</p>
+    <div class="classes-grid">
+      <div class="class-card">
+        <div class="class-img"><img src="https://images.unsplash.com/photo-1594381898411-846e7d193883?w=600&auto=format&fit=crop" alt="Bootybuilding"/><div class="new-badge">NEW</div></div>
+        <div class="class-body"><div class="class-name">Bootybuilding</div><div class="class-tags">Kracht, conditie</div><p class="class-desc">Dames, vergeet de standaard cardio. We gaan voor echte resultaten met zware Hip Thrusts, Squats en die ultieme burn voor buik, billen en benen.</p></div>
+      </div>
+      <div class="class-card">
+        <div class="class-img"><img src="https://images.unsplash.com/photo-1598971639058-a8f62f0b2ed0?w=600&auto=format&fit=crop" alt="Streetlifting"/><div class="new-badge">NEW</div></div>
+        <div class="class-body"><div class="class-name">Streetlifting</div><div class="class-tags">Kracht</div><p class="class-desc">De ultieme combi van Calisthenics & kracht. Pull-ups, dips en muscle-ups, maar dan met extra gewicht. Bouw aan een ijzersterke body control.</p></div>
+      </div>
+      <div class="class-card">
+        <div class="class-img"><img src="https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?w=600&auto=format&fit=crop" alt="WOD"/></div>
+        <div class="class-body"><div class="class-name">WOD</div><div class="class-tags">Kracht, conditie, weightlifting, gymnastics</div><p class="class-desc">Dagelijkse full-body workout met functionele lifts en conditie. Denk aan squats, presses, deadlifts, cardio en bodyweight in één intensieve training.</p></div>
+      </div>
+      <div class="class-card">
+        <div class="class-img"><img src="https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=600&auto=format&fit=crop" alt="Conditioning"/></div>
+        <div class="class-body"><div class="class-name">Conditioning</div><div class="class-tags">Conditie</div><p class="class-desc">Pure conditie en werkcapaciteit. Roeien, air bike, hardlopen en circuits. Verhoog je uithoudingsvermogen en leer presteren onder hoge hartslag.</p></div>
+      </div>
+      <div class="class-card">
+        <div class="class-img"><img src="https://images.unsplash.com/photo-1607962837359-5e7e89f86776?w=600&auto=format&fit=crop" alt="Hybrid"/></div>
+        <div class="class-body"><div class="class-name">Hybrid</div><div class="class-tags">Kracht, conditie, gymnastics</div><p class="class-desc">De mix van kracht en endurance. Hardlopen gecombineerd met sled pushes, lunges, wall balls en carries. Specifieke voorbereiding voor HYROX-events.</p></div>
+      </div>
+      <div class="class-card">
+        <div class="class-img"><img src="https://images.unsplash.com/photo-1526506118085-60ce8714f8c5?w=600&auto=format&fit=crop" alt="Strongman"/><div class="new-badge">NEW</div></div>
+        <div class="class-body"><div class="class-name">Strongman</div><div class="class-tags">Kracht</div><p class="class-desc">Rauwe, functionele kracht. Sleur met zandzakken, til Atlas Stones en domineer de Sled. Word mentaal en fysiek onverwoestbaar.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MEMBERSHIPS -->
+<section id="offers">
+  <div class="container">
+    <div class="section-label">Memberships</div>
+    <h2 class="section-title">Kies jouw formule</h2>
+    <p class="section-sub">Flexibele formules zonder verrassingen. Kies wat bij jou past en begin vandaag.</p>
+
+    <div style="background:#111;border-radius:14px;padding:36px 40px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:24px;margin-top:48px;border:2px solid var(--accent);position:relative;overflow:hidden">
+      <div style="position:absolute;top:0;right:0;width:260px;height:100%;background:linear-gradient(to left,rgba(204,0,0,.12),transparent);pointer-events:none"></div>
+      <div>
+        <div style="font-size:.72rem;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:var(--accent);margin-bottom:10px">Geen risico · Geen verplichting</div>
+        <h3 style="font-size:2rem;font-weight:900;color:#fff;letter-spacing:-1px;margin-bottom:8px">Gratis proefles</h3>
+        <div style="display:flex;gap:20px;flex-wrap:wrap">
+          <span style="color:#aaa;font-size:.9rem;display:flex;align-items:center;gap:7px"><span style="color:var(--accent);font-weight:700">✓</span> ± 50 minuten</span>
+          <span style="color:#aaa;font-size:.9rem;display:flex;align-items:center;gap:7px"><span style="color:var(--accent);font-weight:700">✓</span> Op je eigen niveau</span>
+          <span style="color:#aaa;font-size:.9rem;display:flex;align-items:center;gap:7px"><span style="color:var(--accent);font-weight:700">✓</span> Volledig begeleid</span>
+        </div>
+      </div>
+      <a href="#" onclick="openModal('Gratis Proefles');return false;" style="background:var(--accent);color:#fff;padding:16px 40px;border-radius:8px;font-weight:700;font-size:1rem;letter-spacing:1.5px;text-transform:uppercase;text-decoration:none;white-space:nowrap;flex-shrink:0" onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">Schrijf je in</a>
+    </div>
+
+    <div class="offers-grid">
+      <div class="offer-card">
+        <div class="offer-name">Starter</div>
+        <div class="offer-price">€80<span>/maand</span></div>
+        <p class="offer-desc">Ideaal om te starten met een vaste routine.</p>
+        <ul class="offer-features"><li>9 trainingscredits</li><li>Gratis open gym</li><li>Toegang tot de app</li><li>Progressie tracker</li></ul>
+        <a href="#" onclick="openModal('Starter');return false;" class="offer-btn">Inschrijven</a>
+      </div>
+      <div class="offer-card popular">
+        <div class="popular-badge">Populairste</div>
+        <div class="offer-name">Pro</div>
+        <div class="offer-price">€95<span>/maand</span></div>
+        <p class="offer-desc">Meer ruimte om te trainen, meer resultaat.</p>
+        <ul class="offer-features"><li>15 trainingscredits</li><li>Gratis open gym</li><li>Toegang tot de app</li><li>Progressie tracker</li></ul>
+        <a href="#" onclick="openModal('Pro');return false;" class="offer-btn">Inschrijven</a>
+      </div>
+      <div class="offer-card">
+        <div class="offer-name">Elite</div>
+        <div class="offer-price">€110<span>/maand</span></div>
+        <p class="offer-desc">Voor wie maximaal wil inzetten — geen limieten.</p>
+        <ul class="offer-features"><li>Unlimited trainingscredits</li><li>Gratis open gym</li><li>Toegang tot de app</li><li>Progressie tracker</li></ul>
+        <a href="#" onclick="openModal('Elite');return false;" class="offer-btn">Inschrijven</a>
+      </div>
+      <div class="offer-card">
+        <div class="offer-name">Flex Card</div>
+        <div class="offer-price" style="font-size:1.9rem">10 credits</div>
+        <div class="offer-price-note">Geldig 3 maanden</div>
+        <p class="offer-desc">Flexibel trainen op jouw tempo, zonder vaste formule.</p>
+        <ul class="offer-features"><li>10 trainingscredits</li><li class="cross">Open gym niet inbegrepen</li><li>Toegang tot de app</li><li>Progressie tracker</li></ul>
+        <a href="#" onclick="openModal('Flex Card');return false;" class="offer-btn">Inschrijven</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- REVIEWS -->
+<section id="reviews">
+  <div class="container">
+    <div class="section-label">Wat onze leden zeggen</div>
+    <h2 class="section-title">Reviews</h2>
+    <p class="section-sub">Echte ervaringen van mensen die bij DRVN trainen.</p>
+    <div class="reviews-grid">
+      <div class="review-card"><div class="review-stars">★★★★★</div><p class="review-text">"Ik ben begonnen met de gratis proefles zonder enige ervaring. De begeleiding was top en de sfeer meteen geweldig. Nu train ik al 4 maanden en het stopt niet meer."</p><div class="review-author"><div class="review-avatar">L</div><div><div class="review-name">Laura V.</div><div class="review-meta">Lid sinds januari 2025</div></div></div></div>
+      <div class="review-card"><div class="review-stars">★★★★★</div><p class="review-text">"De WOD-lessen zijn intens maar ongelooflijk motiverend. Je traint met mensen die even hard pushen als jij. De community hier is echt anders dan bij een gewone gym."</p><div class="review-author"><div class="review-avatar">M</div><div><div class="review-name">Mathis D.</div><div class="review-meta">Lid sinds februari 2025</div></div></div></div>
+      <div class="review-card"><div class="review-stars">★★★★★</div><p class="review-text">"Materiaal van topkwaliteit, trainers die echt meekijken en een vibe die je nergens anders vindt. DRVN is geen gym — het is een lifestyle."</p><div class="review-author"><div class="review-avatar">S</div><div><div class="review-name">Sander K.</div><div class="review-meta">Lid sinds maart 2025</div></div></div></div>
+      <div class="review-card"><div class="review-stars">★★★★★</div><p class="review-text">"Als mama van twee kids dacht ik nooit dat ik dit vol zou houden. Maar de lessen passen perfect in mijn schema en de groep geeft me energie. Bootybuilding is mijn absolute favoriet!"</p><div class="review-author"><div class="review-avatar">A</div><div><div class="review-name">Axelle M.</div><div class="review-meta">Lid sinds januari 2025</div></div></div></div>
+      <div class="review-card"><div class="review-stars">★★★★★</div><p class="review-text">"Ik deed eerst de Flex Card om het te proberen. Na twee weken stond ik ingeschreven voor een vaste formule. De kwaliteit van de lessen spreekt voor zich."</p><div class="review-author"><div class="review-avatar">R</div><div><div class="review-name">Robbe T.</div><div class="review-meta">Lid sinds april 2025</div></div></div></div>
+      <div class="review-card"><div class="review-stars">★★★★★</div><p class="review-text">"De Strongman-lessen zijn iets speciaals. Nergens anders heb ik dit gevonden in de regio. Rauwe kracht, goede begeleiding en mensen die je aanmoedigen. Absolute aanrader."</p><div class="review-author"><div class="review-avatar">J</div><div><div class="review-name">Jonas B.</div><div class="review-meta">Lid sinds maart 2025</div></div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA / CONTACT -->
+<section id="cta">
+  <div class="container">
+    <div class="section-label" style="color:var(--accent)">Contact</div>
+    <h2 class="section-title">Klaar om te starten?</h2>
+    <p class="section-sub">Kom langs of stuur een mailtje — we tonen je graag de gym.</p>
+    <a href="mailto:DRVN@outlook.be" class="btn">Contacteer ons</a>
+    <div class="cta-info">
+      <div class="cta-item"><strong>Adres</strong>Europark 25/1, Lanaken</div>
+      <div class="cta-item"><strong>Openingsuren</strong>Ma–do: 18:30–21:30<br>Vrijdag: 18:30–20:30<br>Za–zo: 09:00–11:00</div>
+      <div class="cta-item"><strong>Email</strong>DRVN@outlook.be</div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <svg height="38" width="auto" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+      <rect width="200" height="200" fill="#000"/>
+      <path d="M48,44 L152,44 L177,103 Q156,172 100,190 Q44,172 23,103 Z" fill="none" stroke="#9B1111" stroke-width="7" stroke-linejoin="round"/>
+      <rect x="25" y="93" width="150" height="6" rx="3" fill="#9B1111"/>
+      <rect x="25" y="79" width="8" height="34" rx="2" fill="#9B1111"/>
+      <rect x="35" y="84" width="11" height="24" rx="2" fill="#9B1111"/>
+      <rect x="154" y="84" width="11" height="24" rx="2" fill="#9B1111"/>
+      <rect x="167" y="79" width="8" height="34" rx="2" fill="#9B1111"/>
+      <path d="M76,97 Q76,69 100,69 Q124,69 124,97" fill="none" stroke="#9B1111" stroke-width="12" stroke-linecap="round"/>
+      <circle cx="100" cy="117" r="27" fill="#9B1111"/>
+      <text x="100" y="164" text-anchor="middle" fill="white" font-weight="900" font-size="46" font-family="Arial Black,Impact,sans-serif" letter-spacing="1">DRVN</text>
+    </svg>
+    <p>© 2025 DRVN Gym · Europark 25/1, Lanaken</p>
+    <p style="color:#444">Instagram · Facebook · TikTok</p>
+  </div>
+</footer>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modalTitle">Inschrijven</h3>
+      <p id="modalSub">Vul je gegevens in en we nemen snel contact op.</p>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody">
+      <div class="form-row">
+        <div class="form-group"><label>Voornaam</label><input type="text" placeholder="Jan"/></div>
+        <div class="form-group"><label>Achternaam</label><input type="text" placeholder="Janssen"/></div>
+      </div>
+      <div class="form-group"><label>E-mailadres</label><input type="email" placeholder="jan@email.com"/></div>
+      <div class="form-group"><label>Formule</label>
+        <select id="modalSelect">
+          <option>Gratis Proefles</option>
+          <option>Starter — €80/maand</option>
+          <option>Pro — €95/maand</option>
+          <option>Elite — €110/maand</option>
+          <option>Flex Card — 10 credits / 3 maanden</option>
+        </select>
+      </div>
+      <button class="modal-submit" onclick="submitForm()">Verstuur aanvraag</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // MODAL
+  function openModal(plan) {
+    document.getElementById('modalOverlay').classList.add('open');
+    document.getElementById('modalBody').innerHTML = `
+      <div class="form-row">
+        <div class="form-group"><label>Voornaam</label><input type="text" placeholder="Jan"/></div>
+        <div class="form-group"><label>Achternaam</label><input type="text" placeholder="Janssen"/></div>
+      </div>
+      <div class="form-group"><label>E-mailadres</label><input type="email" placeholder="jan@email.com"/></div>
+      <div class="form-group"><label>Formule</label>
+        <select id="modalSelect">
+          <option ${plan==='Gratis Proefles'?'selected':''}>Gratis Proefles</option>
+          <option ${plan==='Starter'?'selected':''}>Starter — €80/maand</option>
+          <option ${plan==='Pro'?'selected':''}>Pro — €95/maand</option>
+          <option ${plan==='Elite'?'selected':''}>Elite — €110/maand</option>
+          <option ${plan==='Flex Card'?'selected':''}>Flex Card — 10 credits / 3 maanden</option>
+        </select>
+      </div>
+      <button class="modal-submit" onclick="submitForm()">Verstuur aanvraag</button>`;
+    document.getElementById('modalTitle').textContent = plan === 'Gratis Proefles' ? 'Gratis proefles' : 'Inschrijven';
+    document.getElementById('modalSub').textContent = 'Vul je gegevens in en we nemen snel contact op.';
+  }
+  function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
+  function submitForm() {
+    document.getElementById('modalBody').innerHTML = `<div class="modal-success"><div class="check">✅</div><h3>Aanvraag ontvangen!</h3><p>Bedankt! We nemen zo snel mogelijk contact met je op via e-mail.</p></div>`;
+    document.getElementById('modalTitle').textContent = 'Gelukt!';
+    document.getElementById('modalSub').textContent = '';
+    setTimeout(closeModal, 3000);
+  }
+
+  // VIDEO
+  document.getElementById('videoWrap').addEventListener('click', function() {
+    const placeholder = document.getElementById('videoPlaceholder');
+    const frame = document.getElementById('videoFrame');
+    frame.src = 'https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1';
+    frame.style.display = 'block';
+    placeholder.style.display = 'none';
+  });
+
+  // SLIDESHOW
+  let cur = 0;
+  const slides = document.querySelectorAll('.slide');
+  const dotsEl = document.getElementById('dots');
+  slides.forEach((_,i) => {
+    const d = document.createElement('div');
+    d.className = 'dot'+(i===0?' active':'');
+    d.onclick = () => goTo(i);
+    dotsEl.appendChild(d);
+  });
+  function goTo(n) {
+    slides[cur].classList.remove('active');
+    dotsEl.children[cur].classList.remove('active');
+    cur = (n+slides.length)%slides.length;
+    slides[cur].classList.add('active');
+    dotsEl.children[cur].classList.add('active');
+  }
+  function moveSlide(dir){goTo(cur+dir);}
+  setInterval(()=>moveSlide(1),4500);
+</script>
+</body>
+</html>
